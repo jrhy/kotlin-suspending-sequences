@@ -1,7 +1,12 @@
+# Kotlin Suspending Sequences
+Initial release: March 21, 2019
+
+by Jeff Rhyason
+
 # What is this?
 
 `kotlin-suspending-sequences` is modeled after regular Kotlin sequences, except the
-thing that yields things for the sequence, can itself suspend.  It's a multiplatform
+thing that yields things for the sequence can *itself* suspend.  It's a multiplatform
 project, tested with:
 
 * Kotlin-JVM
