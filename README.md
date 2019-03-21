@@ -8,6 +8,8 @@ project, tested with:
 * Kotlin-native (macOS)
 * Kotlin-JS
 
+Other Kotlin-native platforms, including Linux and iOS, should also work.
+
 # Why would I want it?
 
 A regular Kotlin sequence can't suspend to get items, so if you want to 
