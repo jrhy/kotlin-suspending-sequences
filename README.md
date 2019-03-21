@@ -11,7 +11,7 @@ project, tested with:
 # Why would I want it?
 
 A regular Kotlin sequence can't suspend to get items, so if you want to 
-generate a sequence from a suspending network call.  
+generate a sequence from a suspending network call, this provides **satisfaction**.
 
 # What are alternatives?
 
@@ -19,7 +19,39 @@ It might be possible to inline instead, at the expense of descriptive stack trac
 
 # How do I use it?
 
-TBD
+```
+gradle assemble
+```
+produces JARs for platforms:
+* build/libs/kotlin-suspending-sequences-jvm-0.0.1.jar
+* build/libs/kotlin-suspending-sequences-js-0.0.1.jar
+
+Or you can use Maven:
+```
+gradle publishToMavenLocal
+```
+produces:
+* ~/.m2/repository/com/rhyason/kotlin-suspending-sequences
+* ~/.m2/repository/com/rhyason/kotlin-suspending-sequences-js
+* ~/.m2/repository/com/rhyason/kotlin-suspending-sequences-jvm
+* ~/.m2/repository/com/rhyason/kotlin-suspending-sequences-macos
+* ~/.m2/repository/com/rhyason/kotlin-suspending-sequences-metadata
+
+and can be used by adding this to `build.gradle`:
+```
+repositories {
+    mavenLocal()
+}
+
+kotlin {
+    targets { ... }
+    sourceSets {
+        commonMain {
+            implementation "com.rhyason:kotlin-suspending-sequences:0.0.1"
+        }
+    }
+}
+```
 
 # Where could this go?
 
