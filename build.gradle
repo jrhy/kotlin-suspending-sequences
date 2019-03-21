@@ -1,0 +1,59 @@
+plugins {
+    id 'kotlin-multiplatform' version '1.3.21'
+}
+repositories {
+    mavenCentral()
+}
+group 'com.rhyason'
+version '0.0.1'
+
+apply plugin: 'maven-publish'
+
+kotlin {
+    jvm()
+    js()
+    macosX64("macos")
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation kotlin('stdlib-common')
+                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.1.1"
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation kotlin('test-common')
+                implementation kotlin('test-annotations-common')
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation kotlin('stdlib-jdk8')
+                implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
+            }
+        }
+        jvmTest {
+            dependencies {
+                implementation kotlin('test')
+                implementation kotlin('test-junit')
+            }
+        }
+        jsMain {
+            dependencies {
+                implementation kotlin('stdlib-js')
+            }
+        }
+        jsTest {
+            dependencies {
+                implementation kotlin('test-js')
+            }
+        }
+        macosMain {
+            dependencies {
+                implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-native:1.1.1'
+            }
+        }
+        macosTest {
+        }
+    }
+}
