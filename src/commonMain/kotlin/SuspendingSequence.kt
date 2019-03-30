@@ -469,3 +469,17 @@ suspend fun <T, C : MutableCollection<in T>> SuspendingIterable<T>.toCollection(
     return destination
 }
 
+suspend operator fun <T> SuspendingSequence<T>.plus(other: SuspendingSequence<T>) =
+    suspendingSequenceOf(this, other).flatten()
+
+suspend fun <T> suspendingSequenceOf(vararg ts: T): SuspendingSequence<T> =
+    suspendingSequence {
+        yieldAll(ts.iterator())
+    }
+
+suspend fun <T> SuspendingSequence<SuspendingSequence<T>>.flatten(): SuspendingSequence<T> =
+    suspendingSequence {
+        for (o in this@flatten)
+            for (i in o)
+                yield(i)
+    }

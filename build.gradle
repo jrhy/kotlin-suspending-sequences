@@ -12,7 +12,9 @@ apply plugin: 'maven-publish'
 kotlin {
     jvm()
     js()
+    linuxX64("linux")
     macosX64("macos")
+    //wasm32("wasm")
     sourceSets {
         commonMain {
             dependencies {
@@ -48,6 +50,14 @@ kotlin {
                 implementation kotlin('test-js')
             }
         }
+        linuxMain {
+            // remember to sudo apt install libtinfo5
+            dependencies {
+                implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-native:1.1.1'
+            }
+        }
+        linuxTest {
+        }
         macosMain {
             dependencies {
                 implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-native:1.1.1'
@@ -55,5 +65,19 @@ kotlin {
         }
         macosTest {
         }
+        /*
+        wasmMain {
+            dependencies {
+                implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-native:1.1.1'
+            }
+        }
+        wasmTest {
+        }
+        */
     }
 }
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlin.Experimental"]
+}
+
