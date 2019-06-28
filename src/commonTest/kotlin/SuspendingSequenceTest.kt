@@ -88,4 +88,30 @@ class SuspendingSequenceTest {
             }.toList()
         assertEquals(listOf(1, 2, 2, 4, 3, 6, 4, 8, 5, 10), actual)
     }
+
+    @Test
+    fun take() = runBlockingIfAvailable {
+        val seq = suspendingSequence { yieldAll(1..5) }
+        val firstTwo = seq.take(2)
+        assertEquals(listOf(1, 2), firstTwo.toList())
+        // firstTwo aren't consumed from parent sequence
+        assertEquals(listOf(1, 2, 3, 4, 5), seq.toList())
+    }
+
+    @Test
+    fun drop() = runBlockingIfAvailable {
+        val seq = suspendingSequence { yieldAll(1..5) }
+        val lastThree = seq.drop(2)
+        assertEquals(listOf(3, 4, 5), lastThree.toList())
+        assertEquals(listOf(1, 2, 3, 4, 5), seq.toList())
+    }
+
+    @Test
+    fun takeAndDrop() = runBlockingIfAvailable {
+        val seq = suspendingSequence { yieldAll(1..5) }
+        val lastThree = seq.drop(2).take(2)
+        assertEquals(listOf(3, 4), lastThree.toList())
+        assertEquals(listOf(1, 2, 3, 4, 5), seq.toList())
+    }
+
 }

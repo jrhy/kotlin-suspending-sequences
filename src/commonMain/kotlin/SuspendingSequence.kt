@@ -483,3 +483,136 @@ suspend fun <T> SuspendingSequence<SuspendingSequence<T>>.flatten(): SuspendingS
             for (i in o)
                 yield(i)
     }
+
+internal interface SuspendingDropTakeSequence<T> : SuspendingSequence<T> {
+    suspend fun drop(n: Int): SuspendingSequence<T>
+    suspend fun take(n: Int): SuspendingSequence<T>
+}
+
+internal class SuspendingSubSequence<T>(
+    private val sequence: SuspendingSequence<T>,
+    private val startIndex: Int,
+    private val endIndex: Int
+) : SuspendingSequence<T>, SuspendingDropTakeSequence<T> {
+
+    init {
+        require(startIndex >= 0) { "startIndex should be non-negative, but is $startIndex" }
+        require(endIndex >= 0) { "endIndex should be non-negative, but is $endIndex" }
+        require(endIndex >= startIndex) { "endIndex should be not less than startIndex, but was $endIndex < $startIndex" }
+    }
+
+    private val count: Int get() = endIndex - startIndex
+
+    override suspend fun drop(n: Int): SuspendingSequence<T> = if (n >= count) emptySuspendingSequence() else SuspendingSubSequence(sequence, startIndex + n, endIndex)
+    override suspend fun take(n: Int): SuspendingSequence<T> = if (n >= count) this else SuspendingSubSequence(sequence, startIndex, startIndex + n)
+
+    override fun iterator() = object : SuspendingIterator<T> {
+
+        val iterator = sequence.iterator()
+        var position = 0
+
+        // Shouldn't be called from constructor to avoid premature iteration
+        private suspend fun drop() {
+            while (position < startIndex && iterator.hasNext()) {
+                iterator.next()
+                position++
+            }
+        }
+
+        override suspend fun hasNext(): Boolean {
+            drop()
+            return (position < endIndex) && iterator.hasNext()
+        }
+
+        override suspend fun next(): T {
+            drop()
+            if (position >= endIndex)
+                throw NoSuchElementException()
+            position++
+            return iterator.next()
+        }
+    }
+}
+
+class SuspendingTakeSequence<T>(
+    private val sequence: SuspendingSequence<T>,
+    private val count: Int
+) : SuspendingSequence<T>, SuspendingDropTakeSequence<T> {
+
+    init {
+        require(count >= 0) { "count must be non-negative, but was $count." }
+    }
+
+    override suspend fun drop(n: Int): SuspendingSequence<T> = if (n >= count) emptySuspendingSequence() else SuspendingSubSequence(sequence, n, count)
+    override suspend fun take(n: Int): SuspendingSequence<T> = if (n >= count) this else SuspendingTakeSequence(sequence, n)
+
+    override fun iterator(): SuspendingIterator<T> = object : SuspendingIterator<T> {
+        var left = count
+        val iterator = sequence.iterator()
+
+        override suspend fun next(): T {
+            if (left == 0)
+                throw NoSuchElementException()
+            left--
+            return iterator.next()
+        }
+
+        override suspend fun hasNext(): Boolean {
+            return left > 0 && iterator.hasNext()
+        }
+    }
+}
+
+internal class SuspendingDropSequence<T>(
+    private val sequence: SuspendingSequence<T>,
+    private val count: Int
+) : SuspendingSequence<T>, SuspendingDropTakeSequence<T> {
+    init {
+        require(count >= 0) { "count must be non-negative, but was $count." }
+    }
+
+    override suspend fun drop(n: Int): SuspendingSequence<T> = (count + n).let { n1 -> if (n1 < 0) SuspendingDropSequence(this, n) else SuspendingDropSequence(sequence, n1) }
+    override suspend fun take(n: Int): SuspendingSequence<T> = (count + n).let { n1 -> if (n1 < 0) SuspendingTakeSequence(this, n) else SuspendingSubSequence(sequence, count, n1) }
+
+    override fun iterator(): SuspendingIterator<T> = object : SuspendingIterator<T> {
+        val iterator = sequence.iterator()
+        var left = count
+
+        // Shouldn't be called from constructor to avoid premature iteration
+        private suspend fun drop() {
+            while (left > 0 && iterator.hasNext()) {
+                iterator.next()
+                left--
+            }
+        }
+
+        override suspend fun next(): T {
+            drop()
+            return iterator.next()
+        }
+
+        override suspend fun hasNext(): Boolean {
+            drop()
+            return iterator.hasNext()
+        }
+    }
+}
+
+suspend fun <T> SuspendingSequence<T>.take(n: Int): SuspendingSequence<T> {
+    require(n >= 0) { "Requested element count $n is less than zero." }
+    return when {
+        n == 0 -> emptySuspendingSequence()
+        this is SuspendingTakeSequence -> this.take(n)
+        else -> SuspendingTakeSequence(this, n)
+    }
+}
+
+suspend fun <T> SuspendingSequence<T>.drop(n: Int): SuspendingSequence<T> {
+    require(n >= 0) { "Requested element count $n is less than zero." }
+    return when {
+        n == 0 -> this
+        this is SuspendingDropTakeSequence -> this.drop(n)
+        else -> SuspendingDropSequence(this, n)
+    }
+}
+
