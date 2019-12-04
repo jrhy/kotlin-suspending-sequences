@@ -9,6 +9,14 @@ version '0.0.1'
 
 apply plugin: 'maven-publish'
 
+publishing {
+    repositories {
+        maven {
+            url = "$buildDir/repo"
+        }
+    }
+}
+
 kotlin {
     jvm()
     js() {
