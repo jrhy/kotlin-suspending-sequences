@@ -3,12 +3,17 @@ name: CI
 on: [push]
 
 jobs:
-  build:
-
+  buildLinux:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v1
     - name: Run Gradle build
       run: ./gradlew build
+  buildMac:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run Gradle build
+      run: ./gradlew build
+
 
