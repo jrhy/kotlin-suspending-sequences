@@ -9,6 +9,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Run a one-line script
-      run: gradle build
+    - name: Run Gradle build
+      run: ./gradlew build
 
