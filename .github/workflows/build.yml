@@ -4,11 +4,16 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v1
     - name: Run Gradle build
       run: ./gradlew build
+  macbuild:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run Gradle build
+      run: ./gradlew build
+
 
